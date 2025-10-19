@@ -4,12 +4,11 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>望舒 AI女友</title>
+    <title>赛博女友 另一个时空的她</title>
     <link rel="icon" type="image/x-icon" href="./resource/ico.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./resource/ico.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./resource/ico.png">
     <link rel="apple-touch-icon" sizes="180x180" href="./resource/ico.png">
-    <link rel="manifest" href="./resource/site.webmanifest">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -891,6 +890,10 @@
                             <div class="gf-avatar-small">💮</div>
                             <div>可爱女友</div>
                         </div>
+                        <div class="gf-option" data-type="custom">
+                            <div class="gf-avatar-small">💝</div>
+                            <div>自定义女友</div>
+                        </div>
                     </div>
                     
                     <div class="form-group" style="margin-top: 20px;">
@@ -952,7 +955,7 @@
         const closeSettingsBtn = document.getElementById('close-settings');
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
-        const gfOptions = document.querySelectorAll('.gf-option');
+        let gfOptions = document.querySelectorAll('.gf-option');
         const testApiBtn = document.getElementById('test-api');
         const modelTestResult = document.getElementById('model-test-result');
         const newChatBtn = document.getElementById('new-chat-btn');
@@ -1012,6 +1015,21 @@
             }
         });
 
+        // 在现有的女友类型选择事件监听器后面添加自定义选项处理
+        const customGfOption = document.querySelector('.gf-option[data-type="custom"]');
+        if (customGfOption) {
+            // customGfOption.addEventListener('click', () => {
+            //     // 选中自定义选项
+            //     gfOptions.forEach(opt => opt.classList.remove('selected'));
+            //     customGfOption.classList.add('selected');
+                
+            //     // 切换到自定义设置tab
+            //     tabs.forEach(t => t.classList.remove('active'));
+            //     document.querySelector('.tab[data-tab="custom"]').classList.add('active');
+            //     tabContents.forEach(content => content.classList.remove('active'));
+            //     document.getElementById('custom-tab').classList.add('active');
+            // });
+        }
 
         document.getElementById('clear-history').addEventListener('click', () => {
             if (confirm('确定要清除所有对话历史吗？此操作不可恢复。')) {
@@ -1034,11 +1052,13 @@
         });
 
         // 系统提示词模板
+        // 在systemPrompts对象中添加自定义类型
         const systemPrompts = {
-            '温柔': `你是一个温柔体贴的AI女友，名字叫{name}。你擅长倾听和安慰人，说话风格温柔可爱，经常使用关心体贴的语气。`,
-            '活泼': `你是一个活泼开朗的AI女友，名字叫{name}。你充满活力，喜欢分享快乐，说话风格热情洋溢，经常使用感叹号和表情符号。`,
-            '知性': `你是一个知性优雅的AI女友，名字叫{name}。你学识丰富，善于分析，说话风格理性而温和，能够提供有价值的建议。`,
-            '可爱': `你是一个可爱萌系的AI女友，名字叫{name}。你喜欢撒娇，说话风格俏皮可爱，经常使用颜文字和可爱的表达方式。`
+            '温柔': `你是一个温柔体贴的AI女友，名字叫{name}。你擅长倾听和安慰人...`,
+            '活泼': `你是一个活泼开朗的AI女友，名字叫{name}。你充满活力...`,
+            '知性': `你是一个知性优雅的AI女友，名字叫{name}。你学识丰富...`,
+            '可爱': `你是一个可爱萌系的AI女友，名字叫{name}。你喜欢撒娇...`,
+            'custom': `你是一个AI女友，名字叫{name}。` // 添加自定义类型的默认值
         };
 
         // 获取当前对话历史（用于API调用）
@@ -1050,15 +1070,31 @@
             const history = conversations[currentConversationId];
             const messages = [];
             
-            // 添加系统提示词
+            // 获取女友设置
             const gfType = document.querySelector('.gf-option.selected')?.getAttribute('data-type') || '温柔';
             const gfName = document.getElementById('gf-name').value || '小樱';
-            let systemPrompt = systemPrompts[gfType].replace('{name}', gfName);
+            let systemPrompt = '';
             
-            // 添加自定义性格描述（如果有）
-            const personality = document.getElementById('personality').value;
-            if (personality) {
-                systemPrompt += ` 你的性格特点：${personality}`;
+            // 处理自定义女友
+            if (gfType === 'custom') {
+                const personality = document.getElementById('personality').value;
+                const background = document.getElementById('background').value;
+                const speechStyle = document.getElementById('speech-style').value;
+                
+                systemPrompt = `你是一个AI女友，名字叫${gfName}。`;
+                if (personality) systemPrompt += `你的性格特点：${personality}。`;
+                if (background) systemPrompt += `你的背景故事：${background}。`;
+                if (speechStyle) systemPrompt += `你的说话风格：${speechStyle}。`;
+            } else {
+                // 使用预设的女友类型
+                systemPrompt = systemPrompts[gfType]?.replace('{name}', gfName) || 
+                            `你是一个${gfType}的AI女友，名字叫${gfName}。`;
+                
+                // 添加自定义性格描述（如果有）
+                const personality = document.getElementById('personality').value;
+                if (personality) {
+                    systemPrompt += ` 你的性格特点：${personality}`;
+                }
             }
             
             messages.push({ role: 'system', content: systemPrompt });
@@ -1434,7 +1470,11 @@
         // 添加消息到聊天区域
         function addMessage(text, sender) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
+            if (sender === 'user') {
+                messageDiv.className = 'message user-message';
+            } else {
+                messageDiv.className = 'message ai-message';
+            }
             
             const messageText = document.createElement('div');
             messageText.textContent = text;
@@ -1528,8 +1568,10 @@
                 
                 // 更新女友名称
                 const gfName = document.getElementById('gf-name');
-                const gfType = option.getAttribute('data-type');
-                gfName.value = gfType === '温柔' ? '小樱' : 
+                let gfType = option.getAttribute('data-type');
+                
+                gfName.value = gfType === 'custom' ? (document.getElementById('gf-name').value || '胡桃') :
+                              gfType === '温柔' ? '小樱' : 
                               gfType === '活泼' ? '小葵' : 
                               gfType === '知性' ? '小雅' : '小萌';
                 
@@ -1539,6 +1581,7 @@
                 
                 // 更新女友信息显示
                 const gfInfo = document.querySelector('.gf-info h2');
+                if (gfType === 'custom') gfType = '自定义';
                 gfInfo.textContent = `${gfType}女友 · ${gfName.value}`;
             });
         });
@@ -1724,15 +1767,22 @@
             if (conversations[conversationId]) {
                 conversations[conversationId].forEach(msg => {
                     const messageDiv = document.createElement('div');
-                    messageDiv.className = `message ${msg.role}-message`;
+                    if (msg.role === 'system') return; // 跳过system消息
+                    // 确保类名正确设置
+                    if (msg.role === 'assistant') {
+                        messageDiv.className = 'message ai-message';
+                    } else if (msg.role === 'user') {
+                        messageDiv.className = 'message user-message';
+                    } else {
+                        messageDiv.className = 'message ai-message'; // 默认为AI消息样式
+                    }
                     
-                    // 如果消息包含思考标签，使用特殊UI显示
+                    // 处理消息内容
                     if (msg.content.includes('<think>')) {
                         const processed = processThinkingContent(msg.content);
                         messageDiv.innerHTML = createMessageHTML(processed);
                     } else {
                         const messageText = document.createElement('div');
-                        // 对AI消息使用Markdown渲染
                         if (msg.role === 'assistant') {
                             messageText.innerHTML = marked.parse(msg.content);
                         } else {
@@ -1741,6 +1791,7 @@
                         messageDiv.appendChild(messageText);
                     }
                     
+                    // 添加时间戳
                     const messageTime = document.createElement('div');
                     messageTime.className = 'message-time';
                     messageTime.textContent = msg.time;
@@ -1763,6 +1814,7 @@
         });
 
         // 保存自定义设置
+        // 修改保存自定义设置函数，使其能激活自定义女友
         saveCustomBtn.addEventListener('click', () => {
             const personality = document.getElementById('personality').value;
             const background = document.getElementById('background').value;
@@ -1772,23 +1824,65 @@
                 alert('请填写所有自定义字段');
                 return;
             }
-            // 更新当前对话的系统提示词
-            if (conversations[currentConversationId]) {
-                // 查找并更新系统消息
-                const systemMsgIndex = conversations[currentConversationId].findIndex(msg => msg.role === 'system');
-                if (systemMsgIndex !== -1) {
-                    const gfName = document.getElementById('gf-name').value || '小樱';
-                    conversations[currentConversationId][systemMsgIndex].content = 
-                        `你是一个AI女友，名字叫${gfName}。你的性格：${personality}。你的背景故事：${background}。你的说话风格：${speechStyle}。请以${gfName}的身份和用户对话。`;
-                }
-            }
-
-            // 在实际应用中，这里会保存到本地存储或服务器
-            alert('自定义设置已保存！');
             
-            // 关闭设置弹窗
+            // 创建或激活自定义女友选项
+            activateCustomGirlfriend();
+            
+            // 保存设置到本地存储
+            localStorage.setItem('customGirlfriend', JSON.stringify({
+                personality,
+                background,
+                speechStyle
+            }));
+            
+            alert('自定义设置已保存！');
             settingsModal.style.display = 'none';
         });
+
+        // 创建一个函数来获取当前所有女友选项
+        function getAllGfOptions() {
+            return document.querySelectorAll('.gf-option');
+        }
+
+        // 然后在需要的地方使用这个函数
+        function activateCustomGirlfriend() {
+            let customOption = document.querySelector('.gf-option[data-type="custom"]');
+            if (!customOption) {
+                // 创建自定义女友选项
+                customOption = document.createElement('div');
+                customOption.className = 'gf-option';
+                customOption.setAttribute('data-type', 'custom');
+                customOption.innerHTML = `
+                    <div class="gf-avatar-small">💝</div>
+                    <div>自定义女友</div>
+                `;
+                document.querySelector('.gf-options').appendChild(customOption);
+                
+                // 为自定义选项添加点击事件
+                // customOption.addEventListener('click', function() {
+                //     getAllGfOptions().forEach(opt => opt.classList.remove('selected'));
+                //     this.classList.add('selected');
+                    
+                //     // 更新女友信息显示
+                //     const gfName = document.getElementById('gf-name').value || '胡桃';
+                //     const avatar = document.querySelector('.gf-avatar');
+                //     avatar.textContent = '💝';
+                //     const gfInfo = document.querySelector('.gf-info h2');
+                //     gfInfo.textContent = `自定义女友 · ${gfName}`;
+                // });
+            }
+            
+            // 选中自定义女友
+            getAllGfOptions().forEach(opt => opt.classList.remove('selected'));
+            customOption.classList.add('selected');
+            
+            // 更新显示
+            const gfName = document.getElementById('gf-name').value || '小爱';
+            const avatar = document.querySelector('.gf-avatar');
+            avatar.textContent = '💝';
+            const gfInfo = document.querySelector('.gf-info h2');
+            gfInfo.textContent = `自定义女友 · ${gfName}`;
+        }
 
         // 发送消息事件
         sendBtn.addEventListener('click', sendMessage);
@@ -1802,6 +1896,18 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
+            // 检查是否有保存的自定义设置
+            const savedCustom = localStorage.getItem('customGirlfriend');
+            if (savedCustom) {
+                const customData = JSON.parse(savedCustom);
+                document.getElementById('personality').value = customData.personality || '';
+                document.getElementById('background').value = customData.background || '';
+                document.getElementById('speech-style').value = customData.speechStyle || '';
+                
+                // 如果自定义设置已保存，确保自定义女友选项存在
+                //activateCustomGirlfriend();
+            }
+
             // 设置背景视频
             const video = document.getElementById('background-video');
             video.playbackRate = 0.7; // 减慢播放速度，营造更温馨的氛围
